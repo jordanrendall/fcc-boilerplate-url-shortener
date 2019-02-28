@@ -1,26 +1,32 @@
 'use strict';
+const dotenv = require('dotenv').config();
 
-var express = require('express');
-var mongo = require('mongodb');
-var mongoose = require('mongoose');
-var bodyParser = require('body-parser')
-var cors = require('cors');
-var dns = require('dns')
+const express = require('express');
+const mongoose = require('mongoose')
+const bodyParser = require('body-parser')
+const cors = require('cors');
+const dns = require('dns');
 
-var app = express();
+const app = express();
 
 // Basic Configuration 
-var port = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
-/** this project needs a db !! **/ 
-mongoose.connect(process.env.MONGO_URI);
-
-let UrlSchema = new mongoose.Schema({
-    originalUrl: String,
-    shortUrl: Number
+const con = mongoose.connect(process.env.MONGO_URI)
+.then((result)=>{
+  console.log('Connected with: '+result.connection.user);
+})
+.catch((err)=>{
+    console.log('Error: '+err);
 });
 
-let Url = mongoose.model('Url',UrlSchema);
+
+// let UrlSchema = new mongoose.Schema({
+//     originalUrl: String,
+//     shortUrl: Number
+// });
+
+// let Url = mongoose.model('Url',UrlSchema);
 
 app.use(cors());
 
@@ -43,12 +49,20 @@ app.get("/api/hello", function (req, res) {
 
 app.post('/api/shorturl/new',function(req,res){
   let url = req.body.url;
-  let urlNum = Url.count(function(err,data){
-    let entry = new Url({originalUrl: url, shortUrl:urlNum+1})
-    .save(function(err,data){
-      if(err) console.log('Error saving new entry: '+ err);
-    });
+  dns.lookup(url,function(err,address){
+    if(err){
+      console.log('Not a valid URL');
+    }else{
+      let urlNum = Url.count(function(err,data){
+        let entry = new Url({originalUrl: url, shortUrl:urlNum+1})
+        .save(function(err,data){
+          if(err) console.log('Error saving new entry: '+ err);
+        });
+      });
+    }
   });
+  
+  
   
 })
 
