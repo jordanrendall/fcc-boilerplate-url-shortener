@@ -21,12 +21,12 @@ const con = mongoose.connect(process.env.MONGO_URI)
 });
 
 
-// let UrlSchema = new mongoose.Schema({
-//     originalUrl: String,
-//     shortUrl: Number
-// });
+let UrlSchema = new mongoose.Schema({
+    originalUrl: String,
+    shortUrl: Number
+});
 
-// let Url = mongoose.model('Url',UrlSchema);
+let Url = mongoose.model('Url',UrlSchema);
 
 app.use(cors());
 
