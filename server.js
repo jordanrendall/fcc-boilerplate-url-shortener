@@ -60,11 +60,22 @@ app.post('/api/shorturl/new',function(req,res){
         });
       });
     }
-  });
-  
-  
-  
+  }); 
 })
+
+app.get('/api/shorturl/:id',function(req,res){
+  let id = req.params.id;
+  let findResult = Url.find({shortUrl: id},function(err,data){
+      if(err){
+        console.log('Not found!');
+        res.json('Not found.');
+      }
+      else{
+        res.json(data.originalUrl);
+      }
+  });
+})
+
 
 app.listen(port, function () {
   console.log('Node.js listening ...');
