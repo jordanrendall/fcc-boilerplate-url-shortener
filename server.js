@@ -1,5 +1,5 @@
 'use strict';
-const dotenv = require('dotenv').config();
+const dotenv = require('dotenv').config({ path: './.env' })
 
 const express = require('express');
 const mongoose = require('mongoose')
@@ -11,7 +11,6 @@ const app = express();
 
 // Basic Configuration 
 const port = process.env.PORT || 3000;
-
 const con = mongoose.connect(process.env.MONGO_URI)
 .then((result)=>{
   console.log('Connected with: '+result.connection.user);
@@ -48,15 +47,26 @@ app.get("/api/hello", function (req, res) {
 });
 
 app.post('/api/shorturl/new',function(req,res){
+  const https = /http(s)?:\/\//;
   let url = req.body.url;
-  dns.lookup(url,function(err,address){
+  
+  if(!https.test(url)){
+    url = 'https://' + url;
+  }
+
+  let domain = url.replace(https,'');
+
+  dns.lookup(domain,function(err,address){
     if(err){
-      console.log('Not a valid URL');
     }else{
-      let urlNum = Url.count(function(err,data){
-        let entry = new Url({originalUrl: url, shortUrl:urlNum+1})
+      let urlNum = Url.count(function(err,count){
+        let entry = new Url({originalUrl: url, shortUrl:count+1})
         .save(function(err,data){
-          if(err) console.log('Error saving new entry: '+ err);
+          if(err){
+          } 
+          else{
+            console.log(`URL: ${data.originalUrl} #: ${data.shortUrl}`);
+          }
         });
       });
     }
@@ -67,11 +77,10 @@ app.get('/api/shorturl/:id',function(req,res){
   let id = req.params.id;
   let findResult = Url.find({shortUrl: id},function(err,data){
       if(err){
-        console.log('Not found!');
         res.json('Not found.');
       }
       else{
-        res.json(data.originalUrl);
+        res.redirect(data[0].originalUrl);
       }
   });
 })
